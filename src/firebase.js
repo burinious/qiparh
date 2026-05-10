@@ -4,14 +4,24 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
+const qiparhFirebaseDefaults = {
+  apiKey: 'AIzaSyC_aUE13zyLhbBL95YhB4OvEjqldnA3TgI',
+  authDomain: 'qiparh.firebaseapp.com',
+  projectId: 'qiparh',
+  storageBucket: 'qiparh.firebasestorage.app',
+  messagingSenderId: '28854937466',
+  appId: '1:28854937466:web:25b22e04c87467fe77d8c3',
+  measurementId: 'G-HR58MGLZPZ',
+};
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || qiparhFirebaseDefaults.apiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || qiparhFirebaseDefaults.authDomain,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || qiparhFirebaseDefaults.projectId,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || qiparhFirebaseDefaults.storageBucket,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || qiparhFirebaseDefaults.messagingSenderId,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || qiparhFirebaseDefaults.appId,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || qiparhFirebaseDefaults.measurementId,
 };
 
 export const hasFirebaseConfig = [
