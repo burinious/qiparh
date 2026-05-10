@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Box, Button, Chip, IconButton, InputAdornment, LinearProgress, MenuItem, Paper, Stack,
+  Box, Button, Chip, Divider, IconButton, InputAdornment, LinearProgress, MenuItem, Paper, Stack,
   TextField, Typography,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { Delete, Download, Edit, OpenInNew, Search, Visibility } from '@mui/icons-material';
+import { Delete, Download, Edit, FilterList, OpenInNew, Search, Visibility } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import PageHeader from '../components/PageHeader.jsx';
 import ItemDialog from '../components/ItemDialog.jsx';
@@ -24,6 +24,13 @@ function progressOf(item, config) {
     if (!borrowed) return 0;
     return Math.min(100, Math.round((Number(item.amountPaid || 0) / borrowed) * 100));
   }
+  return null;
+}
+
+function moneyValue(item) {
+  if (typeof item.amount === 'number') return item.amount;
+  if (typeof item.revenuePotential === 'number') return item.revenuePotential;
+  if (typeof item.amountBorrowed === 'number') return item.amountBorrowed;
   return null;
 }
 
@@ -59,6 +66,20 @@ export default function ModulePage({ moduleKey, config }) {
     if (!field) return [];
     return ['All', ...Array.from(new Set(items.map((item) => item[field]).filter(Boolean)))];
   }, [config.filters, items]);
+
+  const moduleStats = useMemo(() => {
+    const withProgress = visibleItems.filter((item) => progressOf(item, config) !== null);
+    const averageProgress = withProgress.length
+      ? Math.round(withProgress.reduce((total, item) => total + progressOf(item, config), 0) / withProgress.length)
+      : null;
+    const trackedValue = visibleItems.reduce((total, item) => total + Number(moneyValue(item) || 0), 0);
+    return [
+      { label: 'Records', value: visibleItems.length },
+      { label: 'Filtered from', value: items.length },
+      averageProgress !== null && { label: 'Avg progress', value: `${averageProgress}%` },
+      trackedValue > 0 && { label: 'Tracked value', value: currency.format(trackedValue) },
+    ].filter(Boolean).slice(0, 4);
+  }, [config, items.length, visibleItems]);
 
   const saveItem = async (payload, file) => {
     try {
@@ -109,8 +130,16 @@ export default function ModulePage({ moduleKey, config }) {
         actionLabel={`Add ${config.title.replace(' Tracker', '').replace('Document Vault', 'document')}`}
       />
 
-      <Paper sx={{ p: 2, mb: 3, borderRadius: 3 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+      <Paper
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          mb: 3,
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.background.paper, 0.86)} 42%)`,
+        }}
+      >
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2.5}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ flex: 1 }}>
           <TextField
             fullWidth
             placeholder={`Search ${config.title.toLowerCase()}`}
@@ -119,10 +148,26 @@ export default function ModulePage({ moduleKey, config }) {
             InputProps={{ startAdornment: <InputAdornment position="start"><Search /></InputAdornment> }}
           />
           {filterOptions.length > 0 && (
-            <TextField select label={config.filters[0].label} value={filter} onChange={(event) => setFilter(event.target.value)} sx={{ minWidth: { md: 220 } }}>
+            <TextField
+              select
+              label={config.filters[0].label}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              sx={{ minWidth: { md: 220 } }}
+              InputProps={{ startAdornment: <InputAdornment position="start"><FilterList /></InputAdornment> }}
+            >
               {filterOptions.map((option) => <MenuItem key={option} value={option}>{option}</MenuItem>)}
             </TextField>
           )}
+          </Stack>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {moduleStats.map((stat) => (
+              <Box key={stat.label} sx={{ px: 1.6, py: 1, borderRadius: 2, bgcolor: alpha(theme.palette.background.default, 0.45), minWidth: 104 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight={800}>{stat.label}</Typography>
+                <Typography fontWeight={950}>{stat.value}</Typography>
+              </Box>
+            ))}
+          </Stack>
         </Stack>
       </Paper>
 
@@ -131,7 +176,22 @@ export default function ModulePage({ moduleKey, config }) {
           const progress = progressOf(item, config);
           const balance = config.collection === 'loans' ? Number(item.amountBorrowed || 0) + Number(item.interest || 0) - Number(item.amountPaid || 0) : null;
           return (
-            <Paper key={item.id} sx={{ p: 2.5, borderRadius: 3, minHeight: 228, display: 'flex', flexDirection: 'column' }}>
+            <Paper
+              key={item.id}
+              sx={{
+                p: 2.5,
+                borderRadius: 3,
+                minHeight: 228,
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                '&:hover': {
+                  transform: 'translateY(-3px)',
+                  borderColor: alpha(theme.palette.primary.main, 0.36),
+                  boxShadow: `0 18px 54px ${alpha(theme.palette.common.black, theme.palette.mode === 'dark' ? 0.28 : 0.12)}`,
+                },
+              }}
+            >
               <Stack direction="row" justifyContent="space-between" spacing={1.5} alignItems="flex-start">
                 <Stack direction="row" spacing={1.5} sx={{ minWidth: 0 }}>
                   <Box sx={{ width: 44, height: 44, borderRadius: 2.3, display: 'grid', placeItems: 'center', color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
@@ -168,11 +228,12 @@ export default function ModulePage({ moduleKey, config }) {
                 )}
               </Stack>
 
-              <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                {item.fileUrl && <Button size="small" startIcon={<Visibility />} href={item.fileUrl} target="_blank">Preview</Button>}
-                {item.fileUrl && <Button size="small" startIcon={<Download />} href={item.fileUrl} download>Download</Button>}
+              <Divider sx={{ mt: 2 }} />
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+                {item.fileUrl && <Button size="small" variant="outlined" startIcon={<Visibility />} href={item.fileUrl} target="_blank">Preview</Button>}
+                {item.fileUrl && <Button size="small" variant="outlined" startIcon={<Download />} href={item.fileUrl} download>Download</Button>}
                 {(item.liveLink || item.githubLink || item.url || item.link || item.proofLink) && (
-                  <Button size="small" startIcon={<OpenInNew />} href={item.liveLink || item.githubLink || item.url || item.link || item.proofLink} target="_blank">Open</Button>
+                  <Button size="small" variant="outlined" startIcon={<OpenInNew />} href={item.liveLink || item.githubLink || item.url || item.link || item.proofLink} target="_blank">Open</Button>
                 )}
               </Stack>
             </Paper>
@@ -181,9 +242,17 @@ export default function ModulePage({ moduleKey, config }) {
       </Box>
 
       {visibleItems.length === 0 && (
-        <Paper sx={{ p: 5, mt: 2, textAlign: 'center', borderRadius: 3 }}>
-          <Typography variant="h6">No records yet</Typography>
-          <Typography color="text.secondary">Add the first item to start building this command center module.</Typography>
+        <Paper sx={{ p: { xs: 4, md: 6 }, mt: 2, textAlign: 'center', borderRadius: 3, borderStyle: 'dashed' }}>
+          <Box sx={{ width: 62, height: 62, mx: 'auto', mb: 2, borderRadius: 3, display: 'grid', placeItems: 'center', color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
+            <Icon />
+          </Box>
+          <Typography variant="h5">No records yet</Typography>
+          <Typography color="text.secondary" sx={{ mt: 0.7, maxWidth: 420, mx: 'auto' }}>
+            Add the first item to turn this module into a useful part of your command center.
+          </Typography>
+          <Button variant="contained" sx={{ mt: 2.5 }} onClick={() => { setEditing(null); setDialogOpen(true); }}>
+            Add first record
+          </Button>
         </Paper>
       )}
 

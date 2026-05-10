@@ -5,7 +5,7 @@ import {
   Stack, Toolbar, Typography, useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { DarkMode, LightMode, Logout, Menu } from '@mui/icons-material';
+import { DarkMode, LightMode, Logout, Menu, Shield } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { navItems } from '../data/modules.js';
 import { useAuth } from '../providers/AuthProvider.jsx';
@@ -42,7 +42,18 @@ function Sidebar({ onNavigate }) {
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ p: 1.25, my: 1.5, borderRadius: 3, bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+      <Stack
+        direction="row"
+        spacing={1.25}
+        alignItems="center"
+        sx={{
+          p: 1.25,
+          my: 1.5,
+          borderRadius: 3,
+          bgcolor: alpha(theme.palette.primary.main, 0.08),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+        }}
+      >
         <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.22), color: 'warning.main', fontWeight: 800 }}>
           {(profile?.fullName || user?.email || 'Q').slice(0, 1).toUpperCase()}
         </Avatar>
@@ -70,6 +81,10 @@ function Sidebar({ onNavigate }) {
                 '&.Mui-selected': {
                   color: 'primary.main',
                   bgcolor: alpha(theme.palette.primary.main, 0.13),
+                  boxShadow: `inset 3px 0 0 ${theme.palette.primary.main}`,
+                },
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.08),
                 },
               }}
             >
@@ -81,6 +96,14 @@ function Sidebar({ onNavigate }) {
           );
         })}
       </List>
+
+      <Stack spacing={1} sx={{ p: 1.4, mb: 1, borderRadius: 2.5, bgcolor: alpha(theme.palette.warning.main, 0.08), border: `1px solid ${alpha(theme.palette.warning.main, 0.14)}` }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Shield fontSize="small" color="warning" />
+          <Typography variant="caption" fontWeight={900}>Private workspace</Typography>
+        </Stack>
+        <Typography variant="caption" color="text.secondary">Your records are isolated under your Firebase user ID.</Typography>
+      </Stack>
 
       <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
         <IconButton onClick={toggleMode} sx={{ flex: 1, borderRadius: 2, border: `1px solid ${alpha(theme.palette.divider, 0.6)}` }}>
@@ -118,7 +141,8 @@ export default function AppShell({ children }) {
         PaperProps={{
           sx: {
             width: drawerWidth,
-            bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.76 : 0.86),
+            bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.82 : 0.9),
+            backdropFilter: 'blur(22px)',
             borderRight: `1px solid ${alpha(theme.palette.divider, 0.75)}`,
           },
         }}
@@ -147,7 +171,7 @@ export default function AppShell({ children }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28 }}
-          sx={{ px: { xs: 2, sm: 3, xl: 5 }, py: { xs: 2.5, md: 4 }, maxWidth: 1740, mx: 'auto' }}
+          sx={{ px: { xs: 2, sm: 3, xl: 5 }, py: { xs: 2.5, md: 4 }, maxWidth: 1780, mx: 'auto' }}
         >
           {children}
         </Box>
