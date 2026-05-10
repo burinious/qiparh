@@ -108,6 +108,13 @@ export default function AppShell({ children }) {
         open={isDesktop || mobileOpen}
         onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
+        sx={{
+          width: { lg: drawerWidth },
+          flexShrink: { lg: 0 },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+          },
+        }}
         PaperProps={{
           sx: {
             width: drawerWidth,
