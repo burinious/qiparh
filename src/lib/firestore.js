@@ -6,9 +6,16 @@ export const collectionPath = (userId, key) => ['users', userId, key];
 
 export function subscribeUserCollection(userId, key, callback) {
   const q = query(collection(db, ...collectionPath(userId, key)), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+    },
+    (error) => {
+      console.warn(`Unable to subscribe to ${key}. Firestore may be offline or blocked.`, error);
+      callback([]);
+    },
+  );
 }
 
 export async function listUserCollection(userId, key) {
